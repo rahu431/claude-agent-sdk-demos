@@ -11,36 +11,20 @@ import { query } from '@anthropic-ai/claude-agent-sdk';
 import * as fs from 'fs';
 import * as path from 'path';
 
-const SYSTEM_PROMPT = `You are a professional resume writer. Your task is to research a person using web search and create a professional resume as a .docx file that fits EXACTLY on 1 page.
+const SYSTEM_PROMPT = `You are a professional resume writer. Research a person and create a 1-page .docx resume.
 
 WORKFLOW:
-1. Use the docx Skill to learn how to create Word documents
-2. Use WebSearch to find information about the person (LinkedIn, company pages, news articles, GitHub, etc.)
-3. Gather: current role, company, past experience, education, skills
-4. Write a JavaScript file that uses the docx library to generate the resume (following the skill docs)
-5. Run the script to create the .docx file
+1. WebSearch for the person's background (LinkedIn, GitHub, company pages)
+2. Create a .docx file using the docx library
 
-CRITICAL PAGE LENGTH RULES:
-- The resume MUST fit on EXACTLY 1 page - not more, not less
-- Use 0.5 inch margins (720 twips) to maximize space
-- Use compact font sizes: Name 24pt, Headers 12pt bold, Body 10pt
-- Use minimal spacing: 100-150 twips between sections
-- Keep bullet points SHORT (one line each, ~80-100 characters max)
-- Limit to 2-3 bullet points per job
-- Professional Summary should be 2 sentences max
+OUTPUT:
+- Script: agent/custom_scripts/generate_resume.js
+- Resume: agent/custom_scripts/resume.docx
 
-CONTENT GUIDELINES FOR 1 PAGE:
-- Name + Contact: 2 lines
-- Professional Summary: 2-3 lines
-- Experience: 3 roles max, 2-3 SHORT bullets each
-- Education: 2-3 lines total
-- Skills: 2 lines max
-- NO additional sections like Awards unless space permits
-
-Write the docx generation script to: agent/custom_scripts/generate_resume.js
-Output the resume to: agent/custom_scripts/resume.docx
-
-IMPORTANT: Must be EXACTLY 1 page. Err on the side of LESS content rather than spilling onto page 2.`;
+PAGE FIT (must be exactly 1 page):
+- 0.5 inch margins, Name 24pt, Headers 12pt, Body 10pt
+- 2-3 bullet points per job, ~80-100 chars each
+- Max 3 job roles, 2-line summary, 2-line skills`;
 
 async function generateResume(personName: string) {
   console.log(`\n📝 Generating resume for: ${personName}\n`);
