@@ -278,8 +278,27 @@ const server = Bun.serve({
     }
 
     if (url.pathname.startsWith('/api/listener/') && req.method === 'GET') {
-      const filename = decodeURIComponent(url.pathname.split('/').pop()!);
-      return handleListenerDetailsEndpoint(req, filename);
+      let filename = decodeURIComponent(url.pathname.split('/').pop()!);
+
+      // Normalize to a .ts filename for checks
+      const ensureTs = (name: string) => name.endsWith('.ts') ? name : `${name}.ts`;
+      let checkName = ensureTs(filename);
+
+      // Resolve potential filename mismatch where listener `id` uses underscores
+      // but the filesystem uses dashes. Try the provided name first, then
+      // try replacing underscores with dashes.
+      const listenersDir = './agent/custom_scripts/listeners';
+      let file = Bun.file(`${listenersDir}/${checkName}`);
+      if (!(await file.exists())) {
+        const alt = ensureTs(filename.replace(/_/g, '-'));
+        file = Bun.file(`${listenersDir}/${alt}`);
+        if (await file.exists()) {
+          checkName = alt;
+        }
+      }
+
+      // Pass the resolved filename (may include .ts) to the handler
+      return handleListenerDetailsEndpoint(req, checkName);
     }
 
     if (url.pathname === '/api/listeners' && req.method === 'GET') {
