@@ -211,6 +211,19 @@ export class EmailDatabase {
         DELETE FROM emails_fts WHERE message_id = OLD.message_id;
       END
     `);
+
+    // Ensure `imap_uid` column exists on older databases
+    try {
+      const cols = this.db.prepare(`PRAGMA table_info(emails)`).all() as Array<{ name: string }>;
+      const hasImapUid = cols.some(c => c.name === 'imap_uid');
+      if (!hasImapUid) {
+        this.db.exec(`ALTER TABLE emails ADD COLUMN imap_uid INTEGER`);
+        this.db.exec(`CREATE INDEX IF NOT EXISTS idx_emails_imap_uid ON emails(imap_uid)`);
+        console.log('[EmailDatabase] Migrated: added imap_uid column and index');
+      }
+    } catch (err) {
+      console.warn('[EmailDatabase] Failed to verify/migrate imap_uid column:', err);
+    }
   }
 
   // Insert email with recipients and attachments

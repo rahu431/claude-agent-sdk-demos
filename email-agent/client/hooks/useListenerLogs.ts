@@ -30,7 +30,7 @@ export function useListenerLogs({ listenerId, limit = 20 }: UseListenerLogsOptio
       try {
         setLoading(true);
         const response = await fetch(
-          `http://localhost:3000/api/listener/${encodeURIComponent(listenerId)}/logs?limit=${limit}`
+          `${(typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000')}/api/listener/${encodeURIComponent(listenerId)}/logs?limit=${limit}`
         );
 
         if (!response.ok) {
@@ -53,7 +53,11 @@ export function useListenerLogs({ listenerId, limit = 20 }: UseListenerLogsOptio
 
   // Subscribe to WebSocket for real-time updates
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:3000/ws");
+    const wsUrl = (typeof window !== 'undefined')
+      ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws`
+      : 'ws://localhost:3000/ws';
+
+    const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
     ws.onopen = () => {
